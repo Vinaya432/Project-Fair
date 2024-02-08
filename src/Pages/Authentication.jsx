@@ -1,9 +1,73 @@
-import React from 'react'
-import {  Link } from 'react-router-dom'
-import {Form} from 'react-bootstrap'
+import React, { useState } from 'react'
+import {  Link, useNavigate } from 'react-router-dom'
+import {Form,Spinner} from 'react-bootstrap'
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { loginAPI, registerAPI } from '../Services/allAPIs';
 
 function Authentication({insideRegister}) {
+
+  const [loginStatus,setLoginStatus]=useState(false)
+
+  const navigate=useNavigate()
+  const [userData,setUserData]=useState({
+    username:"",email:"",password:""
+  })
+
+  const handleRegister=async (e)=>{
+    e.preventDefault()
+    console.log(userData);
+    const {username,email,password}=userData
+    if(!username || !email || !password){
+      toast.info("Please fill the form completely!!!")
+    }else{
+      // toast.success("Proceed to api call")
+      try{
+        const result=await registerAPI(userData)
+        console.log(result);
+        if(result.status===200){
+          toast.success(`${result.data.username} has Registered Successfully!!!`)
+          setUserData({username:"",email:"",password:""})
+          setTimeout(()=>{
+            navigate('/login')
+          },2000)
+        }else{
+          toast.warning(result.response.data)
+        }
+      }catch(err){
+        console.log(err);
+      }
+    }
+
+  }
+
+  const handleLogin= async(e)=>{
+    e.preventDefault()
+    const {email,password}=userData
+    if(!email || !password){
+      toast.info("Please fill the form completely!!!")
+    }else{
+      try{
+        const result=await loginAPI({email,password})
+        console.log(result);
+        if(result.status===200){
+          sessionStorage.setItem("usename",result.data.existingUser.username)
+          sessionStorage.setItem("token",result.data.token)
+          setUserData({email:"",password:""})
+          setLoginStatus(true)
+         setTimeout(()=>{
+          navigate('/')
+          setLoginStatus(false)
+         },2000)
+        }else{
+          toast.warning(result.response.data)
+        }
+      }catch(err){
+        console.log(err);
+      }
+    }
+  }
   return (
     <div style={{height:'100vh',width:'100%'}} className='d-flex justify-content-center align-items-center'>
       <div className="container w-75">
@@ -23,25 +87,25 @@ function Authentication({insideRegister}) {
                   <Form className='w-75'>
                     {
                       insideRegister&&<Form.Group className="mb-3" controlId="formBasicuname">
-                          <Form.Control type="text" placeholder="Enter your Username" />
+                          <Form.Control type="text" placeholder="Enter your Username" onChange={(e)=>setUserData({...userData,username:e.target.value})} value={userData.username}/>
                       </Form.Group>
                     }
                     <Form.Group className="mb-3" controlId="formBasicEmail">
-                       <Form.Control type="email" placeholder="Enter email" />
+                       <Form.Control type="email" placeholder="Enter email" onChange={(e)=>setUserData({...userData,email:e.target.value})} value={userData.email}/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="formBasicPassword">
-                      <Form.Control type="password" placeholder="Password" />
+                      <Form.Control type="password" placeholder="Password" onChange={(e)=>setUserData({...userData,password:e.target.value})} value={userData.password}/>
                     </Form.Group>  
                     {
                       insideRegister?
                       <div >
-                          <button className='btn btn-light mb-2'>Register</button>
+                          <button onClick={handleRegister} className='btn btn-light mb-2'>Register</button>
                           <p>Already have an Account? Click here to <Link to={'/login'} className='text-danger fw-bold'>Login</Link></p>
                       </div>:
                       <div >
-                        <button className='btn btn-light mb-2'>Login</button>
-                        <p>New User? Click here to <Link to={'/login'} className='text-danger fw-bold'>Register</Link></p>
+                        <button onClick={handleLogin} className='btn btn-light mb-2'>Login {loginStatus&&<Spinner animation="border" variant="primary" />}</button>
+                        <p>New User? Click here to <Link to={'/register'} className='text-danger fw-bold'>Register</Link></p>
                       </div>
                     }
                   </Form>
@@ -51,7 +115,7 @@ function Authentication({insideRegister}) {
         </div>
       </div>
 
-      
+      <ToastContainer theme='colored' autoClose={2000}/>
     </div>
   )
 }
