@@ -22,11 +22,26 @@ export const getHomeProjectAPI = async()=>{
 }
 
 //getallProject API
-export const getAllProjectAPI = async(reqHeader)=>{
-    return await commonAPI("GET",`${SERVER_URL}/all-projects`,"",reqHeader)
+export const getAllProjectAPI = async(searchKey,reqHeader)=>{
+    return await commonAPI("GET",`${SERVER_URL}/all-projects?search=${searchKey}`,"",reqHeader) //since,search key is not a number we can pass it through url as query
 }
 
 //getuserProject API
 export const getUserProjectAPI = async(reqHeader)=>{
     return await commonAPI("GET",`${SERVER_URL}/user-projects`,"",reqHeader)
+}
+
+//edit project
+export const editProjectAPI = async(id,reqBody,reqHeader)=>{
+    return await commonAPI("PUT",`${SERVER_URL}/project/edit/${id}`,reqBody,reqHeader)
+}
+
+//deleteproject
+export const deleteProjectAPI = async(id,reqHeader)=>{
+    return await commonAPI("DELETE",`${SERVER_URL}/project/delete/${id}`,{},reqHeader)
+}
+
+//update profile
+export const updateUserProfileAPI = async(reqBody,reqHeader)=>{
+    return await commonAPI("PUT",`${SERVER_URL}/user/edit`,reqBody,reqHeader)
 }

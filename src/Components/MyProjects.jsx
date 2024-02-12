@@ -1,16 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react'
 import AddProject from '../Components/AddProject'
 import EditProject from '../Components/EditProject'
-import { getUserProjectAPI } from '../Services/allAPIs'
-import { addProjectResponseContext } from '../Context API/ContextShare'
-
-
+import { deleteProjectAPI, getUserProjectAPI } from '../Services/allAPIs'
+import { addProjectResponseContext, editProjectResponseContext} from '../Context API/ContextShare'
+import { toast } from 'react-toastify'
 
 
 function MyProjects() {
 
 
   const {addProjectResponse,setAddProjectResponse}=useContext(addProjectResponseContext)
+  const {editProjectResponse,setEditProjectResponse}=useContext(editProjectResponseContext)
+
 
   const [userProject,setUserProject]=useState([])
 
@@ -34,7 +35,28 @@ function MyProjects() {
 
   useEffect(()=>{
     getUserProjects()
-  },[addProjectResponse])
+  },[addProjectResponse,editProjectResponse])
+
+  const handleDeleteProject=async(pid)=>{
+    const token=sessionStorage.getItem("token")
+
+    if(token){
+     const reqHeader={
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${token}`
+     }
+      try{
+         const result= await deleteProjectAPI(pid,reqHeader)
+         if(result.status==200){
+          getUserProjects()
+         }else{
+          toast.warning(result.response.data)
+         }
+      }catch(err){
+        console.log(err);
+      }
+    }
+  }
 
   return (
     
@@ -51,7 +73,7 @@ function MyProjects() {
               <EditProject project={project}/>
 
               <a className='btn' href={project?.github} target='_blank'><i style={{height:'34px'}} className='fa-brands fa-github fa-2x'></i></a>
-             <button className='btn'><i style={{height:'34px'}} className='fa-solid fa-trash fa-2x'></i></button>
+             <button onClick={()=>handleDeleteProject(project?._id)} className='btn'><i style={{height:'34px'}} className='fa-solid fa-trash fa-2x'></i></button>
             </div>
             
           </div>

@@ -49,9 +49,7 @@ function AddProject() {
     const {title,languages,overview,github,website,projectImage} = projectData
     
     const token = sessionStorage.getItem("token")
-
     
-
     if(!title || !languages || !github || !website || !overview || !projectImage){
       toast.info("Please fill the form Completely!!!")
     }else{

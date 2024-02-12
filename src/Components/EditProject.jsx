@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import {Modal,Button} from 'react-bootstrap'
 import UploadImg from '../assets/images/uploadicon.jpg'
 import { SERVER_URL } from '../Services/serverURL';
 import { toast,ToastContainer } from 'react-toastify';
+import { editProjectAPI } from '../Services/allAPIs';
+import { editProjectResponseContext } from '../Context API/ContextShare';
 
 function EditProject({project}) {
+
+  const {editProjectResponse,setEditProjectResponse}=useContext(editProjectResponseContext)
   const [show, setShow] = useState(false);
   console.log(project);
 
@@ -32,8 +36,8 @@ function EditProject({project}) {
   }
   const handleShow = () => setShow(true);
 
-  const handleUpdate=()=>{
-    const {title,languages,github,overview,website,projectImage}= projectData
+  const handleUpdate= async()=>{
+    const {id,title,languages,github,overview,website,projectImage}= projectData
     
 
     if(!title || !languages || !github || !overview || !website){
@@ -52,20 +56,28 @@ function EditProject({project}) {
       //reqHeader
       const token = sessionStorage.getItem("token")
       if(token){
-        if(preview){
+        
           const reqHeader={
-            "Content-Type":"multipart/form-data",
+            "Content-Type":preview?"multipart/form-data":"application/json",
             "Authorization":`Bearer ${token}`
           }
           //api call
-        }else{
-          const reqHeader={
-            "Content-Type":"application/json",
-            "Authorization":`Bearer ${token}`
-          }
-          //api call
+
+        try{
+          const result = await editProjectAPI(id,reqBody,reqHeader)
+           console.log(result);
+           if(result.status===200){
+            // toast.success(`Project "${result.data.title}" is updated successfully...`)
+            handleClose()
+            setEditProjectResponse(result.data)
+           }else{
+              toast.warning(result.response.data)
+           }
+        }catch(err){
+          console.log(err);
         }
       }
+      
     }
   }
 
@@ -103,7 +115,7 @@ function EditProject({project}) {
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer theme='dark' autoClose={3000}/>
+      <ToastContainer theme='colored' autoClose={3000}/>
     </>
   )
 }
